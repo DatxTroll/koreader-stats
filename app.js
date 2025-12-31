@@ -4,6 +4,7 @@ let SQL = null;
 let lastQueryResults = null;
 let sortColumn = "total_read_time";
 let sortAsc = false;
+let charts = {};
 
 
 // ===== DOM =====
@@ -92,6 +93,13 @@ function renderSummary() {
   `;
 }
 
+function resetChart(id) {
+  if (charts[id]) {
+    charts[id].destroy();
+    delete charts[id];
+  }
+}
+
 // ===== BOOKS TABLE =====
 function renderBooks() {
   booksTableBody.innerHTML = "";
@@ -146,7 +154,9 @@ function renderBooksPie() {
 
   if (!res.length) return;
 
-  new Chart(document.getElementById("booksPie"), {
+  resetChart("booksPie");
+charts.booksPie = new Chart(document.getElementById("booksPie"), {
+
     type: "pie",
     data: {
       labels: res[0].values.map(r => r[0]),
@@ -170,7 +180,9 @@ function renderDailyChart() {
 
   if (!res.length) return;
 
-  new Chart(document.getElementById("dailyChart"), {
+  resetChart("dailyChart");
+charts.dailyChart = new Chart(document.getElementById("dailyChart"), {
+
     type: "bar",
     data: {
       labels: res[0].values.map(r => r[0]),
@@ -205,7 +217,9 @@ function renderCumulativeChart() {
     data.push(total);
   });
 
-  new Chart(document.getElementById("cumulativeChart"), {
+  resetChart("cumulativeChart");
+charts.cumulativeChart = new Chart(document.getElementById("cumulativeChart"), {
+
     type: "line",
     data: {
       labels,
@@ -238,7 +252,9 @@ function renderWeekdayChart() {
     hours[Number(d)] = h;
   });
 
-  new Chart(document.getElementById("weekdayChart"), {
+  resetChart("weekdayChart");
+charts.weekdayChart = new Chart(document.getElementById("weekdayChart"), {
+
     type: "bar",
     data: {
       labels: names,
