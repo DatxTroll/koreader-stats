@@ -7,6 +7,13 @@ let lastQueryResults = null;
 const fileInput = document.getElementById("fileInput");
 const summaryDiv = document.getElementById("summary");
 const booksTableBody = document.querySelector("#booksTable tbody");
+const minMinutesInput = document.getElementById("minMinutes");
+
+minMinutesInput.addEventListener("change", () => {
+  if (!db) return;
+  renderBooks();
+  renderBooksPie();
+});
 
 fileInput.disabled = true;
 summaryDiv.innerHTML = "<p>Loading SQLite engine…</p>";
