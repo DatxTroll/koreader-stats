@@ -163,17 +163,39 @@ function renderDailyChart() {
     ORDER BY 1
   `);
 
-  charts.dailyChart = new Chart(
-    document.getElementById("dailyChart"),
-    {
-      type: "bar",
-      data: {
-        labels: res[0].values.map(r => r[0]),
-        datasets: [{ label: "Hours", data: res[0].values.map(r => r[1]) }]
+charts.dailyChart = new Chart(
+  document.getElementById("dailyChart"),
+  {
+    type: "bar",
+    data: {
+      labels: res[0].values.map(r => r[0]),
+      datasets: [{
+        label: "Hours",
+        data: res[0].values.map(r => r[1])
+      }]
+    },
+    options: {
+      animation: {
+        duration: 900,
+        easing: "easeOutQuart"
+      },
+      scales: {
+        x: {
+          ticks: {
+            callback: function(value, index) {
+              const label = this.getLabelForValue(value);
+              // label is YYYY-MM-DD
+              const d = new Date(label);
+              return d.toLocaleDateString(undefined, { month: "short", year: "numeric" });
+            },
+            maxRotation: 0,
+            autoSkip: false
+          }
+        }
       }
     }
-  );
-}
+  }
+);
 
 // ===== CUMULATIVE =====
 function renderCumulativeChart() {
