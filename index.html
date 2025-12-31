@@ -15,30 +15,14 @@
 </head>
 <body>
   <header>
-    <h1>📚 KOReader Stats</h1>
-
-    <div class="controls">
-      <input type="file" id="fileInput" accept=".sqlite,.db" />
-
-      <label>
-        Min minutes:
-        <span id="minLabel">10</span>
-        <input
-          type="range"
-          id="minMinutes"
-          min="0"
-          max="120"
-          step="5"
-          value="10"
-        />
-      </label>
-    </div>
+    <h1>📚 KOReader Reading Statistics</h1>
+    <input type="file" id="fileInput" accept=".sqlite,.db">
   </header>
 
   <main>
-    <section class="card" id="summary"></section>
+    <section id="summary" class="card"></section>
 
-    <section class="grid">
+    <section class="cards">
       <div class="card">
         <h2>Time by Book</h2>
         <canvas id="booksPie"></canvas>
@@ -50,12 +34,12 @@
       </div>
 
       <div class="card">
-        <h2>Cumulative Minutes</h2>
+        <h2>Cumulative Reading</h2>
         <canvas id="cumulativeChart"></canvas>
       </div>
 
       <div class="card">
-        <h2>By Weekday</h2>
+        <h2>Reading by Weekday</h2>
         <canvas id="weekdayChart"></canvas>
       </div>
     </section>
