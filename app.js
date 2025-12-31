@@ -2,7 +2,6 @@ let db;
 let SQL;
 let sortColumn = "total_read_time";
 let sortAsc = false;
-
 let charts = {};
 
 const fileInput = document.getElementById("fileInput");
@@ -11,7 +10,11 @@ const minMinutesValue = document.getElementById("minMinutesValue");
 const summaryDiv = document.getElementById("summary");
 const booksTableBody = document.querySelector("#booksTable tbody");
 
-// ===== LOAD SQL.JS =====
+function renderWithLayoutReady(fn) {
+  requestAnimationFrame(() => requestAnimationFrame(fn));
+}
+
+// Load sql.js
 initSqlJs({
   locateFile: f =>
     `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`
@@ -20,7 +23,7 @@ initSqlJs({
   console.log("sql.js ready");
 });
 
-// ===== EVENTS =====
+// Events
 fileInput.addEventListener("change", loadDatabase);
 
 minMinutesInput.addEventListener("input", () => {
@@ -40,28 +43,28 @@ document.querySelectorAll("#booksTable th").forEach(th => {
   });
 });
 
-// ===== LOAD DB =====
 async function loadDatabase(e) {
   const file = e.target.files[0];
   if (!file) return;
-
   const buffer = await file.arrayBuffer();
   db = new SQL.Database(new Uint8Array(buffer));
-
   renderAll();
 }
 
-// ===== RENDER ALL =====
 function renderAll() {
   renderSummary();
   renderBooks();
-  renderBooksPie();
-  renderDailyChart();
-  renderCumulativeChart();
-  renderWeekdayChart();
+
+  renderWithLayoutReady(renderBooksPie);
+  renderWithLayoutReady(renderDailyChart);
+  renderWithLayoutReady(renderCumulativeChart);
+  renderWithLayoutReady(renderWeekdayChart);
 }
 
-// ===== SUMMARY =====
+function resetChart(id) {
+  if (charts[id]) charts[id].destroy();
+}
+
 function renderSummary() {
   const res = db.exec(`SELECT SUM(total_read_time) FROM book`);
   const seconds = res[0]?.values[0][0] || 0;
@@ -70,7 +73,6 @@ function renderSummary() {
   `;
 }
 
-// ===== BOOK TABLE =====
 function renderBooks() {
   booksTableBody.innerHTML = "";
   const minSeconds = Number(minMinutesInput.value) * 60;
@@ -98,16 +100,15 @@ function renderBooks() {
   });
 }
 
-// ===== CHART HELPERS =====
-function resetChart(id) {
-  if (charts[id]) charts[id].destroy();
+function baseAnimation() {
+  return { duration: 900, easing: "easeOutQuart" };
 }
 
-// ===== PIE =====
+// PIE
 function renderBooksPie() {
   resetChart("booksPie");
-
   const minSeconds = Number(minMinutesInput.value) * 60;
+
   const res = db.exec(`
     SELECT title, SUM(total_read_time)
     FROM book
@@ -116,43 +117,27 @@ function renderBooksPie() {
     ORDER BY 2 DESC
   `);
 
-  if (!res.length || !res[0].values.length) return;
-
-  const ctx = document.getElementById("booksPie");
-  if (!ctx) return;
-
-  charts.booksPie = new Chart(ctx, {
+  charts.booksPie = new Chart(document.getElementById("booksPie"), {
     type: "pie",
     data: {
       labels: res[0].values.map(r => r[0]),
       datasets: [{
-        data: res[0].values.map(r => r[1] / 3600)
+        data: res[0].values.map(r => (r[1] / 3600).toFixed(2))
       }]
     },
     options: {
-      responsive: true,
-      animation: {
-        duration: 900,
-        easing: "easeOutQuart",
-        animateRotate: true,
-        animateScale: true
-      },
+      animation: baseAnimation(),
       plugins: {
         legend: {
           position: "right",
-          labels: {
-            padding: 4
-          }
+          labels: { padding: 6, boxWidth: 12 }
         }
       }
     }
   });
 }
 
-
-
-
-// ===== DAILY =====
+// DAILY
 function renderDailyChart() {
   resetChart("dailyChart");
 
@@ -163,41 +148,30 @@ function renderDailyChart() {
     ORDER BY 1
   `);
 
-charts.dailyChart = new Chart(
-  document.getElementById("dailyChart"),
-  {
+  charts.dailyChart = new Chart(document.getElementById("dailyChart"), {
     type: "bar",
     data: {
       labels: res[0].values.map(r => r[0]),
-      datasets: [{
-        label: "Hours",
-        data: res[0].values.map(r => r[1])
-      }]
+      datasets: [{ label: "Hours", data: res[0].values.map(r => r[1]) }]
     },
     options: {
-      animation: {
-        duration: 900,
-        easing: "easeOutQuart"
-      },
+      animation: baseAnimation(),
       scales: {
         x: {
           ticks: {
-            callback: function(value, index) {
-              const label = this.getLabelForValue(value);
-              // label is YYYY-MM-DD
-              const d = new Date(label);
-              return d.toLocaleDateString(undefined, { month: "short", year: "numeric" });
+            callback: function(v) {
+              const label = this.getLabelForValue(v);
+              return label.endsWith("-01") ? label : "";
             },
-            maxRotation: 0,
             autoSkip: false
           }
         }
       }
     }
-  }
-);
+  });
+}
 
-// ===== CUMULATIVE =====
+// CUMULATIVE
 function renderCumulativeChart() {
   resetChart("cumulativeChart");
 
@@ -209,26 +183,24 @@ function renderCumulativeChart() {
   `);
 
   let total = 0;
-  const data = res[0].values.map(([d, m]) => (total += m));
+  const data = res[0].values.map(r => (total += r[1]));
 
-  charts.cumulativeChart = new Chart(
-    document.getElementById("cumulativeChart"),
-    {
-      type: "line",
-      data: {
-        labels: res[0].values.map(r => r[0]),
-        datasets: [{
-          label: "Minutes",
-          data,
-          fill: true,
-          tension: 0.3
-        }]
-      }
-    }
-  );
+  charts.cumulativeChart = new Chart(document.getElementById("cumulativeChart"), {
+    type: "line",
+    data: {
+      labels: res[0].values.map(r => r[0]),
+      datasets: [{
+        label: "Minutes",
+        data,
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: { animation: baseAnimation() }
+  });
 }
 
-// ===== WEEKDAY =====
+// WEEKDAY
 function renderWeekdayChart() {
   resetChart("weekdayChart");
 
@@ -242,14 +214,12 @@ function renderWeekdayChart() {
   const values = Array(7).fill(0);
   res[0].values.forEach(([d,h]) => values[d] = h);
 
-  charts.weekdayChart = new Chart(
-    document.getElementById("weekdayChart"),
-    {
-      type: "bar",
-      data: {
-        labels: days,
-        datasets: [{ label: "Hours", data: values }]
-      }
-    }
-  );
+  charts.weekdayChart = new Chart(document.getElementById("weekdayChart"), {
+    type: "bar",
+    data: {
+      labels: days,
+      datasets: [{ label: "Hours", data: values }]
+    },
+    options: { animation: baseAnimation() }
+  });
 }
