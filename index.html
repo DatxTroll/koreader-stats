@@ -4,13 +4,17 @@
   <meta charset="UTF-8" />
   <title>KOReader Reading Stats</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/fengari-web/dist/fengari-web.min.js"></script>
+
+  <!-- SQLite in the browser -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+
+  <!-- Charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <h1>📚 KOReader Reading Statistics</h1>
 
-  <input type="file" id="fileInput" accept=".lua" />
+  <input type="file" id="fileInput" accept=".sqlite,.db" />
 
   <div id="summary"></div>
 
@@ -23,7 +27,6 @@
         <th>Title</th>
         <th>Author</th>
         <th>Total Time (hrs)</th>
-        <th>Pages</th>
       </tr>
     </thead>
     <tbody></tbody>
