@@ -4,17 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let charts = [];
 
   const fileInput = document.getElementById("fileInput");
-  const minMinutes = document.getElementById("minMinutes");
-  const minLabel = document.getElementById("minLabel");
   const summary = document.getElementById("summary");
   const booksBody = document.querySelector("#booksTable tbody");
-
-  minLabel.textContent = minMinutes.value;
-
-  minMinutes.addEventListener("input", () => {
-    minLabel.textContent = minMinutes.value;
-    if (db) renderAll();
-  });
 
   initSqlJs({
     locateFile: f =>
@@ -27,8 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const buf = await file.arrayBuffer();
-    db = new SQL.Database(new Uint8Array(buf));
+    const buffer = await file.arrayBuffer();
+    db = new SQL.Database(new Uint8Array(buffer));
     renderAll();
   });
 
@@ -41,40 +32,30 @@ document.addEventListener("DOMContentLoaded", () => {
     clearCharts();
     renderSummary();
     renderBooks();
-    renderPie();
-    renderDaily();
-    renderCumulative();
-    renderWeekday();
+    renderBooksPie();
+    renderDailyChart();
+    renderCumulativeChart();
+    renderWeekdayChart();
   }
 
   function renderSummary() {
     const res = db.exec(`SELECT SUM(total_read_time) FROM book`);
-    const secs = res[0]?.values[0][0] || 0;
+    const seconds = res[0]?.values[0][0] || 0;
     summary.innerHTML = `
-      <h2>Total Reading</h2>
-      <p>${(secs / 3600).toFixed(1)} hours</p>
+      <h2>Total Reading Time</h2>
+      <p>${(seconds / 3600).toFixed(1)} hours</p>
     `;
   }
 
   function renderBooks() {
     booksBody.innerHTML = "";
-    const minSec = minMinutes.value * 60;
-
-    const res = db.exec(
-      `
-      SELECT
-        title,
-        GROUP_CONCAT(authors),
-        SUM(total_read_time)
+    const res = db.exec(`
+      SELECT title, authors, total_read_time
       FROM book
-      WHERE total_read_time >= ?
-      GROUP BY title
-      ORDER BY SUM(total_read_time) DESC
-      `,
-      [minSec]
-    );
+      ORDER BY total_read_time DESC
+    `);
 
-    res[0]?.values.forEach(([t, a, s]) => {
+    res[0].values.forEach(([t, a, s]) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${t}</td>
@@ -85,12 +66,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function renderPie() {
+  function renderBooksPie() {
     const res = db.exec(`
-      SELECT title, SUM(total_read_time)/3600
+      SELECT title, total_read_time / 3600
       FROM book
-      GROUP BY title
-      ORDER BY 2 DESC
+      ORDER BY total_read_time DESC
     `);
 
     charts.push(new Chart(booksPie, {
@@ -102,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }));
   }
 
-  function renderDaily() {
+  function renderDailyChart() {
     const res = db.exec(`
       SELECT date(start_time,'unixepoch'), SUM(duration)/3600
       FROM page_stat_data
@@ -114,12 +94,12 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "bar",
       data: {
         labels: res[0].values.map(r => r[0]),
-        datasets: [{ label: "Hours", data: res[0].values.map(r => r[1]) }]
+        datasets: [{ label: "Hours Read", data: res[0].values.map(r => r[1]) }]
       }
     }));
   }
 
-  function renderCumulative() {
+  function renderCumulativeChart() {
     const res = db.exec(`
       SELECT date(start_time,'unixepoch'), SUM(duration)/60
       FROM page_stat_data
@@ -141,12 +121,12 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "line",
       data: {
         labels,
-        datasets: [{ label: "Minutes", data, tension: 0.3 }]
+        datasets: [{ label: "Minutes Read", data, tension: 0.3 }]
       }
     }));
   }
 
-  function renderWeekday() {
+  function renderWeekdayChart() {
     const res = db.exec(`
       SELECT strftime('%w',start_time,'unixepoch'), SUM(duration)/3600
       FROM page_stat_data
@@ -162,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
       type: "bar",
       data: {
         labels: days,
-        datasets: [{ label: "Hours", data }]
+        datasets: [{ label: "Hours Read", data }]
       }
     }));
   }
