@@ -61,11 +61,11 @@ input[type="range"] {
 
 
 .card {
-  padding: 1rem;
+  padding: .5rem;
 }
 
 .card canvas {
-  max-height: 260px;
+  max-height: 460px;
 }
 
 h2 {
