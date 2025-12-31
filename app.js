@@ -106,8 +106,8 @@ function resetChart(id) {
 // ===== PIE =====
 function renderBooksPie() {
   resetChart("booksPie");
-  const minSeconds = Number(minMinutesInput.value) * 60;
 
+  const minSeconds = Number(minMinutesInput.value) * 60;
   const res = db.exec(`
     SELECT title, SUM(total_read_time)
     FROM book
@@ -116,18 +116,27 @@ function renderBooksPie() {
     ORDER BY 2 DESC
   `);
 
-charts.booksPie = new Chart(
-  document.getElementById("booksPie"),
-  {
+  if (!res.length || !res[0].values.length) return;
+
+  const ctx = document.getElementById("booksPie");
+  if (!ctx) return;
+
+  charts.booksPie = new Chart(ctx, {
     type: "pie",
     data: {
       labels: res[0].values.map(r => r[0]),
       datasets: [{
-        data: res[0].values.map(r => r[1] / 3600) // ← numbers, not strings
+        data: res[0].values.map(r => r[1] / 3600)
       }]
     },
     options: {
       responsive: true,
+      animation: {
+        duration: 900,
+        easing: "easeOutQuart",
+        animateRotate: true,
+        animateScale: true
+      },
       plugins: {
         legend: {
           position: "right",
@@ -136,14 +145,11 @@ charts.booksPie = new Chart(
             padding: 12
           }
         }
-      },
-      animation: {
-        duration: 900,
-        easing: "easeOutQuart"
       }
     }
-  }
-);
+  });
+}
+
 
 
 
