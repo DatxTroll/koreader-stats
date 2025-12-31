@@ -3,12 +3,11 @@
   --card: #171a21;
   --text: #e6e6eb;
   --muted: #9aa0a6;
-  --accent: #6aa7ff;
 }
 
 * {
   box-sizing: border-box;
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
 body {
@@ -20,35 +19,25 @@ body {
 header {
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #222;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 h1 {
-  margin: 0 0 0.5rem 0;
-}
-
-.controls {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-input[type="file"] {
-  color: var(--text);
-}
-
-label {
-  font-size: 0.9rem;
-  color: var(--muted);
+  margin: 0;
+  font-size: 1.4rem;
 }
 
 main {
   padding: 1.5rem;
 }
 
-.grid {
+.cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .card {
@@ -58,7 +47,7 @@ main {
 }
 
 canvas {
-  max-height: 260px;
+  max-height: 240px;
 }
 
 table {
