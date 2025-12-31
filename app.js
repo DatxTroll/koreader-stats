@@ -123,10 +123,11 @@ charts.booksPie = new Chart(
     data: {
       labels: res[0].values.map(r => r[0]),
       datasets: [{
-        data: res[0].values.map(r => (r[1] / 3600).toFixed(2))
+        data: res[0].values.map(r => r[1] / 3600) // ← numbers, not strings
       }]
     },
     options: {
+      responsive: true,
       plugins: {
         legend: {
           position: "right",
@@ -137,14 +138,13 @@ charts.booksPie = new Chart(
         }
       },
       animation: {
-        animateRotate: true,
-        animateScale: true,
         duration: 900,
         easing: "easeOutQuart"
       }
     }
   }
 );
+
 
 
 // ===== DAILY =====
