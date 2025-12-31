@@ -1,98 +1,39 @@
-// ===== GLOBAL STATE =====
-let db = null;
-let SQL = null;
-let lastQueryResults = null;
-let sortColumn = "total_read_time";
-let sortAsc = false;
+let db;
+let SQL;
 let charts = {};
 
-
-// ===== DOM =====
 const fileInput = document.getElementById("fileInput");
 const summaryDiv = document.getElementById("summary");
 const booksTableBody = document.querySelector("#booksTable tbody");
 const minMinutesInput = document.getElementById("minMinutes");
-document.querySelectorAll("#booksTable th").forEach(th => {
-  th.addEventListener("click", () => {
-    const col = th.dataset.sort;
-    if (sortColumn === col) {
-      sortAsc = !sortAsc;
-    } else {
-      sortColumn = col;
-      sortAsc = true;
-    }
-    renderBooks();
-  });
-});
+const minMinutesValue = document.getElementById("minMinutesValue");
+
+minMinutesValue.textContent = `${minMinutesInput.value} min`;
 
 minMinutesInput.addEventListener("input", () => {
   minMinutesValue.textContent = `${minMinutesInput.value} min`;
-});
-  renderBooks();
-  renderBooksPie();
+  if (!db) return;
+  renderAll();
 });
 
 fileInput.disabled = true;
-summaryDiv.innerHTML = "<p>Loading SQLite engine…</p>";
 
-// ===== LOAD SQL.JS =====
 initSqlJs({
-  locateFile: file =>
-    `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${file}`
+  locateFile: f =>
+    `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`
 }).then(sql => {
   SQL = sql;
   fileInput.disabled = false;
-  summaryDiv.innerHTML = "<p>SQLite engine loaded. Upload your stats file.</p>";
-  console.log("sql.js ready");
 });
 
-// ======================================================
-// 🔴 THIS IS THE DB LOAD SPOT 🔴
-// ======================================================
-fileInput.addEventListener("change", async (e) => {
+fileInput.addEventListener("change", async e => {
   const file = e.target.files[0];
   if (!file) return;
 
-  console.log("File selected:", file.name);
   const buffer = await file.arrayBuffer();
   db = new SQL.Database(new Uint8Array(buffer));
-  console.log("Database opened");
-
-  inspectSchema();
-
-  // ---- RENDER EVERYTHING HERE ----
-  renderSummary();
-  renderBooks();
-  renderBooksPie();
-  renderDailyChart();
-  renderCumulativeChart();
-  renderWeekdayChart();
+  renderAll();
 });
-
-// ===== SCHEMA DEBUG =====
-function inspectSchema() {
-  const res = db.exec(`
-    SELECT name FROM sqlite_master
-    WHERE type='table'
-  `);
-  const tables = res[0]?.values.flat() || [];
-  console.log("Tables found:", tables);
-}
-
-// ===== SUMMARY =====
-function renderSummary() {
-  const res = db.exec(`
-    SELECT SUM(total_read_time)
-    FROM book
-  `);
-
-  const seconds = res[0]?.values[0][0] || 0;
-
-  summaryDiv.innerHTML = `
-    <h2>Total Reading Time</h2>
-    <p>${(seconds / 3600).toFixed(1)} hours</p>
-  `;
-}
 
 function resetChart(id) {
   if (charts[id]) {
@@ -101,169 +42,174 @@ function resetChart(id) {
   }
 }
 
-// ===== BOOKS TABLE =====
+function renderAll() {
+  renderSummary();
+  renderBooks();
+  renderBooksPie();
+  renderDailyChart();
+  renderCumulativeChart();
+  renderWeekdayChart();
+}
+
+function renderSummary() {
+  const res = db.exec(`
+    SELECT SUM(COALESCE(total_read_time,0))
+    FROM book
+  `);
+  const seconds = res[0]?.values[0][0] || 0;
+  summaryDiv.innerHTML = `
+    <h3>Total</h3>
+    <p>${(seconds / 3600).toFixed(1)} hrs</p>
+  `;
+}
+
 function renderBooks() {
   booksTableBody.innerHTML = "";
-
-  const minSeconds = Number(minMinutesInput.value) * 60;
-  const dir = sortAsc ? "ASC" : "DESC";
+  const minSeconds = minMinutesInput.value * 60;
 
   const res = db.exec(
     `
-    SELECT
-      title,
-      GROUP_CONCAT(DISTINCT authors) AS authors,
-      SUM(total_read_time) AS total_read_time
+    SELECT title,
+           GROUP_CONCAT(authors, ', '),
+           SUM(COALESCE(total_read_time,0))
     FROM book
     WHERE total_read_time >= ?
     GROUP BY title
-    ORDER BY ${sortColumn} ${dir}
+    ORDER BY 3 DESC
     `,
     [minSeconds]
   );
 
-  lastQueryResults = res[0];
-
-  res[0].values.forEach(row => {
+  res[0]?.values.forEach(([t, a, s]) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${row[0]}</td>
-      <td>${row[1] || ""}</td>
-      <td>${(row[2] / 3600).toFixed(1)}</td>
+      <td>${t}</td>
+      <td>${a || ""}</td>
+      <td>${(s / 3600).toFixed(1)}</td>
     `;
     booksTableBody.appendChild(tr);
   });
 }
 
-
-// ===== PIE: TIME BY BOOK =====
 function renderBooksPie() {
-  const minSeconds = Number(minMinutesInput.value) * 60;
+  resetChart("booksPie");
 
+  const minSeconds = minMinutesInput.value * 60;
   const res = db.exec(
     `
-    SELECT
-      title,
-      SUM(total_read_time) AS total_read_time
+    SELECT title, SUM(COALESCE(total_read_time,0))
     FROM book
     WHERE total_read_time >= ?
     GROUP BY title
-    ORDER BY total_read_time DESC
+    ORDER BY 2 DESC
     `,
     [minSeconds]
   );
 
-  if (!res.length) return;
-
-  resetChart("booksPie");
-charts.booksPie = new Chart(document.getElementById("booksPie"), {
-
-    type: "pie",
-    data: {
-      labels: res[0].values.map(r => r[0]),
-      datasets: [{
-        data: res[0].values.map(r => (r[1] / 3600).toFixed(2))
-      }]
+  charts.booksPie = new Chart(
+    document.getElementById("booksPie"),
+    {
+      type: "pie",
+      data: {
+        labels: res[0]?.values.map(r => r[0]),
+        datasets: [{
+          data: res[0]?.values.map(r => (r[1] / 3600).toFixed(2))
+        }]
+      }
     }
-  });
+  );
 }
 
-// ===== DAILY BAR =====
 function renderDailyChart() {
+  resetChart("dailyChart");
+
   const res = db.exec(`
-    SELECT
-      date(start_time, 'unixepoch') AS day,
-      SUM(duration) / 3600.0 AS hours
+    SELECT date(start_time,'unixepoch'),
+           SUM(duration)/3600.0
     FROM page_stat_data
-    GROUP BY day
-    ORDER BY day
+    GROUP BY 1
+    ORDER BY 1
   `);
 
-  if (!res.length) return;
-
-  resetChart("dailyChart");
-charts.dailyChart = new Chart(document.getElementById("dailyChart"), {
-
-    type: "bar",
-    data: {
-      labels: res[0].values.map(r => r[0]),
-      datasets: [{
-        label: "Hours Read",
-        data: res[0].values.map(r => r[1])
-      }]
+  charts.dailyChart = new Chart(
+    document.getElementById("dailyChart"),
+    {
+      type: "bar",
+      data: {
+        labels: res[0]?.values.map(r => r[0]),
+        datasets: [{
+          label: "Hours",
+          data: res[0]?.values.map(r => r[1])
+        }]
+      }
     }
-  });
+  );
 }
 
-// ===== CUMULATIVE MINUTES =====
 function renderCumulativeChart() {
-  const res = db.exec(`
-    SELECT
-      date(start_time, 'unixepoch') AS day,
-      SUM(duration) / 60.0 AS minutes
-    FROM page_stat_data
-    GROUP BY day
-    ORDER BY day
-  `);
+  resetChart("cumulativeChart");
 
-  if (!res.length) return;
+  const res = db.exec(`
+    SELECT date(start_time,'unixepoch'),
+           SUM(duration)/60.0
+    FROM page_stat_data
+    GROUP BY 1
+    ORDER BY 1
+  `);
 
   let total = 0;
   const labels = [];
   const data = [];
 
-  res[0].values.forEach(([day, minutes]) => {
-    total += minutes;
-    labels.push(day);
+  res[0]?.values.forEach(([d, m]) => {
+    total += m;
+    labels.push(d);
     data.push(total);
   });
 
-  resetChart("cumulativeChart");
-charts.cumulativeChart = new Chart(document.getElementById("cumulativeChart"), {
-
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: "Cumulative Minutes Read",
-        data,
-        fill: true,
-        tension: 0.3
-      }]
+  charts.cumulativeChart = new Chart(
+    document.getElementById("cumulativeChart"),
+    {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "Minutes",
+          data,
+          fill: true,
+          tension: 0.3
+        }]
+      }
     }
-  });
+  );
 }
 
-// ===== WEEKDAY BAR =====
 function renderWeekdayChart() {
+  resetChart("weekdayChart");
+
   const res = db.exec(`
-    SELECT
-      strftime('%w', start_time, 'unixepoch') AS weekday,
-      SUM(duration) / 3600.0 AS hours
+    SELECT strftime('%w',start_time,'unixepoch'),
+           SUM(duration)/3600.0
     FROM page_stat_data
-    GROUP BY weekday
+    GROUP BY 1
   `);
 
-  if (!res.length) return;
+  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const data = Array(7).fill(0);
 
-  const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const hours = Array(7).fill(0);
+  res[0]?.values.forEach(([d,h]) => data[Number(d)] = h);
 
-  res[0].values.forEach(([d, h]) => {
-    hours[Number(d)] = h;
-  });
-
-  resetChart("weekdayChart");
-charts.weekdayChart = new Chart(document.getElementById("weekdayChart"), {
-
-    type: "bar",
-    data: {
-      labels: names,
-      datasets: [{
-        label: "Hours Read",
-        data: hours
-      }]
+  charts.weekdayChart = new Chart(
+    document.getElementById("weekdayChart"),
+    {
+      type: "bar",
+      data: {
+        labels: days,
+        datasets: [{
+          label: "Hours",
+          data
+        }]
+      }
     }
-  });
+  );
 }
-
