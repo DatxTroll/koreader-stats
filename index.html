@@ -4,127 +4,75 @@
   <meta charset="UTF-8" />
   <title>KOReader Reading Stats</title>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
 
   <!-- SQLite -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
 
   <!-- Charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #0f1115;
-      color: #eaeaf0;
-    }
-
-    header {
-      padding: 1.5rem;
-      border-bottom: 1px solid #222;
-    }
-
-    main {
-      padding: 1.5rem;
-      display: grid;
-      gap: 2rem;
-    }
-
-    .card {
-      background: #161922;
-      border-radius: 12px;
-      padding: 1.25rem;
-    }
-
-    input[type="file"] {
-      margin-bottom: 1rem;
-    }
-
-    .slider-row {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    input[type="range"] {
-      flex: 1;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 0.6rem;
-      text-align: left;
-      border-bottom: 1px solid #222;
-    }
-
-    th {
-      cursor: pointer;
-      color: #9aa4ff;
-    }
-
-    canvas {
-      max-height: 300px;
-    }
-  </style>
 </head>
+
 <body>
+<div class="dashboard">
 
-<header>
-  <h1>📚 KOReader Reading Dashboard</h1>
-</header>
+  <aside class="sidebar">
+    <h1>📚 Reading Stats</h1>
 
-<main>
+    <label class="file-upload">
+      Load stats
+      <input type="file" id="fileInput" accept=".sqlite,.db" />
+    </label>
 
-  <div class="card">
-    <input type="file" id="fileInput" accept=".sqlite,.db" />
-    <div class="slider-row">
-      <label>Min minutes:</label>
-      <input type="range" id="minMinutes" min="0" max="120" step="5" value="10">
-      <strong><span id="minMinutesLabel">10</span> min</strong>
+    <div class="control">
+      <div class="control-header">
+        <span>Min minutes</span>
+        <span id="minMinutesValue">10 min</span>
+      </div>
+      <input type="range" id="minMinutes" min="0" max="300" step="5" value="10">
     </div>
+
     <div id="summary"></div>
-  </div>
+  </aside>
 
-  <div class="card">
-    <h2>Time by Book</h2>
-    <canvas id="booksPie"></canvas>
-  </div>
+  <main class="content">
 
-  <div class="card">
-    <h2>Daily Reading</h2>
-    <canvas id="dailyChart"></canvas>
-  </div>
+    <section class="card">
+      <h2>Time by Book</h2>
+      <canvas id="booksPie"></canvas>
+    </section>
 
-  <div class="card">
-    <h2>Cumulative Minutes</h2>
-    <canvas id="cumulativeChart"></canvas>
-  </div>
+    <section class="card">
+      <h2>Daily Reading</h2>
+      <canvas id="dailyChart"></canvas>
+    </section>
 
-  <div class="card">
-    <h2>By Weekday</h2>
-    <canvas id="weekdayChart"></canvas>
-  </div>
+    <section class="card">
+      <h2>Cumulative Reading</h2>
+      <canvas id="cumulativeChart"></canvas>
+    </section>
 
-  <div class="card">
-    <h2>Books</h2>
-    <table id="booksTable">
-      <thead>
-        <tr>
-          <th data-sort="title">Title</th>
-          <th data-sort="authors">Author</th>
-          <th data-sort="total_read_time">Hours</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+    <section class="card">
+      <h2>By Weekday</h2>
+      <canvas id="weekdayChart"></canvas>
+    </section>
 
-</main>
+    <section class="card">
+      <h2>Books</h2>
+      <table id="booksTable">
+        <thead>
+          <tr>
+            <th data-sort="title">Title</th>
+            <th data-sort="authors">Author</th>
+            <th data-sort="total_read_time">Hours</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+  </main>
+</div>
 
 <script src="app.js"></script>
 </body>
