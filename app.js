@@ -137,6 +137,8 @@ function renderBooksPie() {
         animateRotate: true,
         animateScale: true
       },
+        resizeDelay: 100
+}
       plugins: {
         legend: {
           position: "right",
