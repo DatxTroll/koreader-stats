@@ -6,10 +6,7 @@
 
   <link rel="stylesheet" href="style.css" />
 
-  <!-- SQLite -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
-
-  <!-- Charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -21,7 +18,7 @@
 
     <label class="file-upload">
       Load stats
-      <input type="file" id="fileInput" accept=".sqlite3,.db" />
+      <input type="file" id="fileInput" accept=".sqlite,.db" />
     </label>
 
     <div class="control">
@@ -37,23 +34,51 @@
 
   <main class="content">
 
-    <section class="card resizable">
-      <h2>Time by Book</h2>
+    <section class="card medium">
+      <div class="card-header">
+        <h2>Time by Book</h2>
+        <div class="sizes">
+          <button data-size="small">S</button>
+          <button data-size="medium">M</button>
+          <button data-size="large">L</button>
+        </div>
+      </div>
       <canvas id="booksPie"></canvas>
     </section>
 
-    <section class="card">
-      <h2>Daily Reading</h2>
+    <section class="card medium">
+      <div class="card-header">
+        <h2>Daily Reading</h2>
+        <div class="sizes">
+          <button data-size="small">S</button>
+          <button data-size="medium">M</button>
+          <button data-size="large">L</button>
+        </div>
+      </div>
       <canvas id="dailyChart"></canvas>
     </section>
 
-    <section class="card">
-      <h2>Cumulative Reading</h2>
+    <section class="card medium">
+      <div class="card-header">
+        <h2>Cumulative Reading</h2>
+        <div class="sizes">
+          <button data-size="small">S</button>
+          <button data-size="medium">M</button>
+          <button data-size="large">L</button>
+        </div>
+      </div>
       <canvas id="cumulativeChart"></canvas>
     </section>
 
-    <section class="card">
-      <h2>By Weekday</h2>
+    <section class="card medium">
+      <div class="card-header">
+        <h2>By Weekday</h2>
+        <div class="sizes">
+          <button data-size="small">S</button>
+          <button data-size="medium">M</button>
+          <button data-size="large">L</button>
+        </div>
+      </div>
       <canvas id="weekdayChart"></canvas>
     </section>
 
