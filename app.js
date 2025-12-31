@@ -6,18 +6,29 @@ const fileInput = document.getElementById("fileInput");
 const summaryDiv = document.getElementById("summary");
 const booksTableBody = document.querySelector("#booksTable tbody");
 
+fileInput.disabled = true;
+summaryDiv.innerHTML = "<p>Loading SQLite engine…</p>";
+
 initSqlJs({
-  locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${file}`
+  locateFile: file =>
+    `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${file}`
 }).then(sql => {
   SQL = sql;
+  fileInput.disabled = false;
+  summaryDiv.innerHTML = "<p>SQLite engine loaded. Upload your stats file.</p>";
+  console.log("sql.js ready");
 });
 
 fileInput.addEventListener("change", async (e) => {
   const file = e.target.files[0];
-  if (!file || !SQL) return;
+  if (!file) return;
+
+  console.log("File selected:", file.name);
 
   const buffer = await file.arrayBuffer();
   db = new SQL.Database(new Uint8Array(buffer));
+
+  console.log("Database opened");
 
   inspectSchema();
   renderSummary();
@@ -30,9 +41,14 @@ function inspectSchema() {
     SELECT name FROM sqlite_master
     WHERE type='table'
   `);
-  console.log("Tables:", res[0].values.flat());
-}
 
+  const tables = res[0]?.values.flat() || [];
+  console.log("Tables found:", tables);
+
+  summaryDiv.innerHTML += `
+    <p><strong>Tables:</strong> ${tables.join(", ")}</p>
+  `;
+}
 function renderBooks() {
   booksTableBody.innerHTML = "";
 
