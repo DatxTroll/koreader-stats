@@ -61,7 +61,9 @@ input[type="range"] {
   grid-template-columns: repeat(auto-fit, minmax(900px, 1fr));
   gap: 1.25rem;
 }
-
+.card-full {
+  grid-column: 1 / -1;
+}
 
 .card {
   padding: .5rem;
