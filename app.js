@@ -32,11 +32,6 @@ minMinutesInput.addEventListener("change", () => {
 
 fileInput.disabled = true;
 summaryDiv.innerHTML = "<p>Loading SQLite engine…</p>";
-minMinutesInput.addEventListener("change", () => {
-  if (!db) return;
-  renderBooks();
-  renderBooksPie();
-});
 
 // ===== LOAD SQL.JS =====
 initSqlJs({
