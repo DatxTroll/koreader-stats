@@ -116,19 +116,36 @@ function renderBooksPie() {
     ORDER BY 2 DESC
   `);
 
-  charts.booksPie = new Chart(
-    document.getElementById("booksPie"),
-    {
-      type: "pie",
-      data: {
-        labels: res[0].values.map(r => r[0]),
-        datasets: [{
-          data: res[0].values.map(r => (r[1] / 3600).toFixed(2))
-        }]
+charts.booksPie = new Chart(
+  document.getElementById("booksPie"),
+  {
+    type: "pie",
+    data: {
+      labels: res[0].values.map(r => r[0]),
+      datasets: [{
+        data: res[0].values.map(r => (r[1] / 3600).toFixed(2))
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          position: "right",
+          labels: {
+            boxWidth: 12,
+            padding: 12
+          }
+        }
+      },
+      animation: {
+        animateRotate: true,
+        animateScale: true,
+        duration: 900,
+        easing: "easeOutQuart"
       }
     }
-  );
-}
+  }
+);
+
 
 // ===== DAILY =====
 function renderDailyChart() {
