@@ -124,6 +124,10 @@ function renderBooksPie() {
         labels: res[0].values.map(r => r[0]),
         datasets: [{
           data: res[0].values.map(r => (r[1] / 3600).toFixed(2))
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+          }
         }]
       }
     }
@@ -148,6 +152,10 @@ function renderDailyChart() {
       data: {
         labels: res[0].values.map(r => r[0]),
         datasets: [{ label: "Hours", data: res[0].values.map(r => r[1]) }]
+      options: {
+          responsive: true,
+          maintainAspectRatio: false
+          }
       }
     }
   );
@@ -178,6 +186,10 @@ function renderCumulativeChart() {
           data,
           fill: true,
           tension: 0.3
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+          }
         }]
       }
     }
@@ -205,6 +217,10 @@ function renderWeekdayChart() {
       data: {
         labels: days,
         datasets: [{ label: "Hours", data: values }]
+                options: {
+          responsive: true,
+          maintainAspectRatio: false
+          }
       }
     }
   );
