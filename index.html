@@ -15,10 +15,11 @@
   <h1>📚 KOReader Reading Statistics</h1>
 
   <input type="file" id="fileInput" accept=".sqLite3,.db" />
-  <label>
-  Min minutes read:
-  <input type="number" id="minMinutes" value="10" min="0" step="5">
-</label>
+<div class="control">
+  <span class="label">Min time</span>
+  <input type="range" id="minMinutes" min="0" max="300" step="5">
+  <span id="minMinutesValue">10 min</span>
+</div>
 
   <div id="summary"></div>
 
