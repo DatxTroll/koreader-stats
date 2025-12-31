@@ -141,8 +141,8 @@ function renderBooksPie() {
         legend: {
           position: "right",
           labels: {
-            boxWidth: 12,
-            padding: 12
+            boxWidth: 20,
+            padding: 1
           }
         }
       }
