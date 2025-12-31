@@ -2,12 +2,27 @@
 let db = null;
 let SQL = null;
 let lastQueryResults = null;
+let sortColumn = "total_read_time";
+let sortAsc = false;
+
 
 // ===== DOM =====
 const fileInput = document.getElementById("fileInput");
 const summaryDiv = document.getElementById("summary");
 const booksTableBody = document.querySelector("#booksTable tbody");
 const minMinutesInput = document.getElementById("minMinutes");
+document.querySelectorAll("#booksTable th").forEach(th => {
+  th.addEventListener("click", () => {
+    const col = th.dataset.sort;
+    if (sortColumn === col) {
+      sortAsc = !sortAsc;
+    } else {
+      sortColumn = col;
+      sortAsc = true;
+    }
+    renderBooks();
+  });
+});
 
 minMinutesInput.addEventListener("change", () => {
   if (!db) return;
@@ -17,6 +32,11 @@ minMinutesInput.addEventListener("change", () => {
 
 fileInput.disabled = true;
 summaryDiv.innerHTML = "<p>Loading SQLite engine…</p>";
+minMinutesInput.addEventListener("change", () => {
+  if (!db) return;
+  renderBooks();
+  renderBooksPie();
+});
 
 // ===== LOAD SQL.JS =====
 initSqlJs({
@@ -81,11 +101,22 @@ function renderSummary() {
 function renderBooks() {
   booksTableBody.innerHTML = "";
 
-  const res = db.exec(`
-    SELECT title, authors, total_read_time
+  const minSeconds = Number(minMinutesInput.value) * 60;
+  const dir = sortAsc ? "ASC" : "DESC";
+
+  const res = db.exec(
+    `
+    SELECT
+      title,
+      GROUP_CONCAT(DISTINCT authors, ", ") AS authors,
+      SUM(total_read_time) AS total_read_time
     FROM book
-    ORDER BY total_read_time DESC
-  `);
+    WHERE total_read_time >= ?
+    GROUP BY title
+    ORDER BY ${sortColumn} ${dir}
+    `,
+    [minSeconds]
+  );
 
   lastQueryResults = res[0];
 
@@ -100,14 +131,23 @@ function renderBooks() {
   });
 }
 
+
 // ===== PIE: TIME BY BOOK =====
 function renderBooksPie() {
-  const res = db.exec(`
-    SELECT title, total_read_time
+  const minSeconds = Number(minMinutesInput.value) * 60;
+
+  const res = db.exec(
+    `
+    SELECT
+      title,
+      SUM(total_read_time) AS total_read_time
     FROM book
-    WHERE total_read_time > 0
+    WHERE total_read_time >= ?
+    GROUP BY title
     ORDER BY total_read_time DESC
-  `);
+    `,
+    [minSeconds]
+  );
 
   if (!res.length) return;
 
