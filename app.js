@@ -33,32 +33,16 @@ function inspectSchema() {
   console.log("Tables:", res[0].values.flat());
 }
 
-function renderSummary() {
-  const res = db.exec(`
-    SELECT SUM(duration) as total_seconds
-    FROM reading_sessions
-  `);
-
-  const totalSeconds = res[0]?.values[0][0] || 0;
-
-  summaryDiv.innerHTML = `
-    <h2>Total Reading Time</h2>
-    <p>${(totalSeconds / 3600).toFixed(1)} hours</p>
-  `;
-}
-
 function renderBooks() {
   booksTableBody.innerHTML = "";
 
   const res = db.exec(`
     SELECT
-      b.title,
-      b.authors,
-      SUM(s.duration) as total_seconds
-    FROM books b
-    JOIN reading_sessions s ON s.book_id = b.id
-    GROUP BY b.id
-    ORDER BY total_seconds DESC
+      title,
+      authors,
+      total_read_time
+    FROM book
+    ORDER BY total_read_time DESC
   `);
 
   lastQueryResults = res[0];
@@ -74,15 +58,44 @@ function renderBooks() {
   });
 }
 
+
+function renderBooks() {
+  booksTableBody.innerHTML = "";
+
+  const res = db.exec(`
+    SELECT
+      title,
+      authors,
+      total_read_time
+    FROM book
+    ORDER BY total_read_time DESC
+  `);
+
+  lastQueryResults = res[0];
+
+  res[0].values.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row[0]}</td>
+      <td>${row[1] || ""}</td>
+      <td>${(row[2] / 3600).toFixed(1)}</td>
+    `;
+    booksTableBody.appendChild(tr);
+  });
+}
+
+
 function renderDailyChart() {
   const res = db.exec(`
     SELECT
       date(start_time, 'unixepoch') as day,
       SUM(duration) / 3600.0 as hours
-    FROM reading_sessions
+    FROM page_stat_data
     GROUP BY day
     ORDER BY day
   `);
+
+  if (!res.length) return;
 
   const labels = res[0].values.map(r => r[0]);
   const data = res[0].values.map(r => r[1]);
@@ -98,6 +111,7 @@ function renderDailyChart() {
     }
   });
 }
+
 
 // EXPORTS
 
