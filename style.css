@@ -57,7 +57,11 @@ input[type="range"] {
 .content {
   padding: 1.5rem;
   overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 1.25rem;
 }
+
 
 .card {
   background: #171a23;
