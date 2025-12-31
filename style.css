@@ -57,17 +57,15 @@ input[type="range"] {
 .content {
   padding: 1.5rem;
   overflow-y: auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(800px, 1fr));
-  gap: 1.25rem;
 }
 
 
 .card {
-  background: #171a23;
-  border-radius: 12px;
-  padding: 1.25rem;
-  margin-bottom: 1.25rem;
+  padding: 1rem;
+}
+
+.card canvas {
+  max-height: 260px;
 }
 
 h2 {
