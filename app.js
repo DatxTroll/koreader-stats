@@ -25,8 +25,9 @@ document.querySelectorAll("#booksTable th").forEach(th => {
   });
 });
 
-minMinutesInput.addEventListener("change", () => {
-  if (!db) return;
+minMinutesInput.addEventListener("input", () => {
+  minMinutesValue.textContent = `${minMinutesInput.value} min`;
+});
   renderBooks();
   renderBooksPie();
 });
