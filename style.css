@@ -58,7 +58,7 @@ input[type="range"] {
   padding: 1.5rem;
   overflow-y: auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9000px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(900px, 1fr));
   gap: 1.25rem;
 }
 
