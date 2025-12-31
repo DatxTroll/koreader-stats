@@ -1,38 +1,45 @@
+let db = null;
+let SQL = null;
+let lastQueryResults = null;
+
 const fileInput = document.getElementById("fileInput");
 const summaryDiv = document.getElementById("summary");
 const booksTableBody = document.querySelector("#booksTable tbody");
 
-let parsedStats = null;
+initSqlJs({
+  locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${file}`
+}).then(sql => {
+  SQL = sql;
+});
 
 fileInput.addEventListener("change", async (e) => {
   const file = e.target.files[0];
-  if (!file) return;
+  if (!file || !SQL) return;
 
-  const text = await file.text();
-  parsedStats = parseLuaStats(text);
+  const buffer = await file.arrayBuffer();
+  db = new SQL.Database(new Uint8Array(buffer));
 
-  renderSummary(parsedStats);
-  renderBooks(parsedStats);
-  renderDailyChart(parsedStats);
+  inspectSchema();
+  renderSummary();
+  renderBooks();
+  renderDailyChart();
 });
 
-function parseLuaStats(luaText) {
-  const { lua, lauxlib, lualib, to_js } = fengari;
-  const L = lauxlib.luaL_newstate();
-  lualib.luaL_openlibs(L);
-
-  lauxlib.luaL_dostring(L, luaText);
-  const result = to_js(L, -1);
-
-  return result;
+function inspectSchema() {
+  const res = db.exec(`
+    SELECT name FROM sqlite_master
+    WHERE type='table'
+  `);
+  console.log("Tables:", res[0].values.flat());
 }
 
-function renderSummary(stats) {
-  let totalSeconds = 0;
+function renderSummary() {
+  const res = db.exec(`
+    SELECT SUM(duration) as total_seconds
+    FROM reading_sessions
+  `);
 
-  Object.values(stats.books || {}).forEach(b => {
-    totalSeconds += b.total_time || 0;
-  });
+  const totalSeconds = res[0]?.values[0][0] || 0;
 
   summaryDiv.innerHTML = `
     <h2>Total Reading Time</h2>
@@ -40,28 +47,45 @@ function renderSummary(stats) {
   `;
 }
 
-function renderBooks(stats) {
+function renderBooks() {
   booksTableBody.innerHTML = "";
 
-  Object.values(stats.books || {}).forEach(book => {
-    const row = document.createElement("tr");
+  const res = db.exec(`
+    SELECT
+      b.title,
+      b.authors,
+      SUM(s.duration) as total_seconds
+    FROM books b
+    JOIN reading_sessions s ON s.book_id = b.id
+    GROUP BY b.id
+    ORDER BY total_seconds DESC
+  `);
 
-    row.innerHTML = `
-      <td>${book.title || "Unknown"}</td>
-      <td>${book.authors || ""}</td>
-      <td>${((book.total_time || 0) / 3600).toFixed(1)}</td>
-      <td>${book.pages || ""}</td>
+  lastQueryResults = res[0];
+
+  res[0].values.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row[0]}</td>
+      <td>${row[1] || ""}</td>
+      <td>${(row[2] / 3600).toFixed(1)}</td>
     `;
-
-    booksTableBody.appendChild(row);
+    booksTableBody.appendChild(tr);
   });
 }
 
-function renderDailyChart(stats) {
-  if (!stats.daily) return;
+function renderDailyChart() {
+  const res = db.exec(`
+    SELECT
+      date(start_time, 'unixepoch') as day,
+      SUM(duration) / 3600.0 as hours
+    FROM reading_sessions
+    GROUP BY day
+    ORDER BY day
+  `);
 
-  const labels = Object.keys(stats.daily);
-  const data = Object.values(stats.daily).map(v => v / 3600);
+  const labels = res[0].values.map(r => r[0]);
+  const data = res[0].values.map(r => r[1]);
 
   new Chart(document.getElementById("dailyChart"), {
     type: "bar",
@@ -78,20 +102,26 @@ function renderDailyChart(stats) {
 // EXPORTS
 
 document.getElementById("exportCsv").onclick = () => {
-  if (!parsedStats) return;
+  if (!lastQueryResults) return;
 
-  let csv = "Title,Author,TotalHours,Pages\n";
-
-  Object.values(parsedStats.books || {}).forEach(b => {
-    csv += `"${b.title}","${b.authors}",${(b.total_time/3600).toFixed(2)},${b.pages}\n`;
+  let csv = lastQueryResults.columns.join(",") + "\n";
+  lastQueryResults.values.forEach(r => {
+    csv += r.map(v => `"${v}"`).join(",") + "\n";
   });
 
   download(csv, "koreader_books.csv");
 };
 
 document.getElementById("exportJson").onclick = () => {
-  if (!parsedStats) return;
-  download(JSON.stringify(parsedStats, null, 2), "koreader_stats.json");
+  if (!lastQueryResults) return;
+
+  const rows = lastQueryResults.values.map(r =>
+    Object.fromEntries(
+      lastQueryResults.columns.map((c, i) => [c, r[i]])
+    )
+  );
+
+  download(JSON.stringify(rows, null, 2), "koreader_books.json");
 };
 
 function download(content, filename) {
