@@ -1,3 +1,11 @@
+:root {
+  --bg: #0f172a;
+  --card: #111827;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --accent: #60a5fa;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -5,86 +13,56 @@
 body {
   margin: 0;
   font-family: system-ui, -apple-system, sans-serif;
-  background: #0f1115;
-  color: #e5e7eb;
+  background: var(--bg);
+  color: var(--text);
 }
 
-.dashboard {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  height: 100vh;
-}
-
-.sidebar {
-  background: #151821;
+header {
   padding: 1.5rem;
-  border-right: 1px solid #222;
+  border-bottom: 1px solid #1f2933;
 }
 
-.file-upload {
-  display: block;
-  margin: 1rem 0;
-  padding: 0.6rem;
-  background: #222;
-  border-radius: 8px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.file-upload input {
-  display: none;
-}
-
-.control {
+.controls {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
   margin-top: 1rem;
 }
 
-.control-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.9rem;
-  opacity: 0.8;
+input[type="file"] {
+  color: var(--text);
 }
 
-.content {
+label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--muted);
+}
+
+input[type="range"] {
+  accent-color: var(--accent);
+}
+
+main {
   padding: 1.5rem;
-  overflow-y: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .card {
-  background: #171a23;
+  background: var(--card);
   border-radius: 12px;
   padding: 1rem;
-  margin-bottom: 1.25rem;
 }
 
-.card.small { height: 260px; }
-.card.medium { height: 400px; }
-.card.large { height: 600px; }
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.sizes button {
-  background: #222;
-  border: none;
-  color: #ccc;
-  margin-left: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.sizes button:hover {
-  background: #2a2f3a;
-}
-
-canvas {
-  width: 100% !important;
-  height: calc(100% - 40px) !important;
+h1, h2 {
+  margin: 0 0 0.5rem 0;
 }
 
 table {
@@ -92,17 +70,24 @@ table {
   border-collapse: collapse;
 }
 
-th {
-  cursor: pointer;
-  font-weight: 500;
-  opacity: 0.7;
-  text-align: left;
+th, td {
+  padding: 0.5rem;
 }
 
-td {
-  padding: 0.5rem 0;
+th {
+  text-align: left;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+th:hover {
+  color: var(--accent);
 }
 
 tbody tr:hover {
-  background: #1f2430;
+  background: #1f2933;
+}
+
+canvas {
+  max-height: 240px;
 }
