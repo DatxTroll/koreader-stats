@@ -49,29 +49,18 @@ function inspectSchema() {
     <p><strong>Tables:</strong> ${tables.join(", ")}</p>
   `;
 }
-function renderBooks() {
-  booksTableBody.innerHTML = "";
-
+function renderSummary() {
   const res = db.exec(`
-    SELECT
-      title,
-      authors,
-      total_read_time
+    SELECT SUM(total_read_time)
     FROM book
-    ORDER BY total_read_time DESC
   `);
 
-  lastQueryResults = res[0];
+  const totalSeconds = res[0]?.values[0][0] || 0;
 
-  res[0].values.forEach(row => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${row[0]}</td>
-      <td>${row[1] || ""}</td>
-      <td>${(row[2] / 3600).toFixed(1)}</td>
-    `;
-    booksTableBody.appendChild(tr);
-  });
+  summaryDiv.innerHTML += `
+    <h2>Total Reading Time</h2>
+    <p>${(totalSeconds / 3600).toFixed(1)} hours</p>
+  `;
 }
 
 
