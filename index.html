@@ -6,80 +6,50 @@
 
   <link rel="stylesheet" href="style.css" />
 
+  <!-- sql.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
-<div class="dashboard">
+  <header>
+    <h1>📚 KOReader Reading Stats</h1>
 
-  <aside class="sidebar">
-    <h1>📚 Reading Stats</h1>
+    <div class="controls">
+      <input type="file" id="fileInput" accept=".sqlite,.db,*" />
 
-    <label class="file-upload">
-      Load stats
-      <input type="file" id="fileInput" accept=".sqlite,.db" />
-    </label>
-
-    <div class="control">
-      <div class="control-header">
-        <span>Min minutes</span>
-        <span id="minMinutesValue">10 min</span>
-      </div>
-      <input type="range" id="minMinutes" min="0" max="300" step="5" value="10">
+      <label>
+        Min minutes read:
+        <input type="range" id="minMinutes" min="0" max="120" step="5" value="10">
+        <span id="minMinutesLabel">10 min</span>
+      </label>
     </div>
+  </header>
 
-    <div id="summary"></div>
-  </aside>
+  <main>
+    <section id="summary" class="card"></section>
 
-  <main class="content">
-
-    <section class="card medium">
-      <div class="card-header">
+    <section class="grid">
+      <div class="card">
         <h2>Time by Book</h2>
-        <div class="sizes">
-          <button data-size="small">S</button>
-          <button data-size="medium">M</button>
-          <button data-size="large">L</button>
-        </div>
+        <canvas id="booksPie"></canvas>
       </div>
-      <canvas id="booksPie"></canvas>
-    </section>
 
-    <section class="card medium">
-      <div class="card-header">
+      <div class="card">
         <h2>Daily Reading</h2>
-        <div class="sizes">
-          <button data-size="small">S</button>
-          <button data-size="medium">M</button>
-          <button data-size="large">L</button>
-        </div>
+        <canvas id="dailyChart"></canvas>
       </div>
-      <canvas id="dailyChart"></canvas>
-    </section>
 
-    <section class="card medium">
-      <div class="card-header">
+      <div class="card">
         <h2>Cumulative Reading</h2>
-        <div class="sizes">
-          <button data-size="small">S</button>
-          <button data-size="medium">M</button>
-          <button data-size="large">L</button>
-        </div>
+        <canvas id="cumulativeChart"></canvas>
       </div>
-      <canvas id="cumulativeChart"></canvas>
-    </section>
 
-    <section class="card medium">
-      <div class="card-header">
+      <div class="card">
         <h2>By Weekday</h2>
-        <div class="sizes">
-          <button data-size="small">S</button>
-          <button data-size="medium">M</button>
-          <button data-size="large">L</button>
-        </div>
+        <canvas id="weekdayChart"></canvas>
       </div>
-      <canvas id="weekdayChart"></canvas>
     </section>
 
     <section class="card">
@@ -95,10 +65,8 @@
         <tbody></tbody>
       </table>
     </section>
-
   </main>
-</div>
 
-<script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
