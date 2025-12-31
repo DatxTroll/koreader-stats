@@ -103,7 +103,7 @@ function renderBooks() {
     `
     SELECT
       title,
-      GROUP_CONCAT(DISTINCT authors, ", ") AS authors,
+      GROUP_CONCAT(DISTINCT authors) AS authors,
       SUM(total_read_time) AS total_read_time
     FROM book
     WHERE total_read_time >= ?
