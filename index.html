@@ -2,58 +2,72 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>KOReader Reading Stats</title>
+  <title>KOReader Stats</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <link rel="stylesheet" href="style.css" />
 
-  <!-- SQLite in the browser -->
+  <!-- SQLite -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
-
   <!-- Charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <h1>📚 KOReader Reading Statistics</h1>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <h1>📚 Reading Stats</h1>
 
-  <input type="file" id="fileInput" accept=".sqLite3,.db" />
-<div class="control">
-  <span class="label">Min time</span>
-  <input type="range" id="minMinutes" min="0" max="300" step="5">
-  <span id="minMinutesValue">10 min</span>
-</div>
+      <div class="control">
+        <label>Min minutes</label>
+        <input type="range" id="minMinutes" min="0" max="300" step="5" value="10">
+        <span id="minMinutesValue">10 min</span>
+      </div>
 
-  <div id="summary"></div>
+      <div class="control">
+        <label>Stats file</label>
+        <input type="file" id="fileInput" accept=".sqlite,.db,.sqlite3">
+      </div>
 
-  <section id="charts">
-    <h2>Time by Book</h2>
-    <canvas id="booksPie"></canvas>
+      <div id="summary"></div>
+    </aside>
 
-    <h2>Daily Reading</h2>
-    <canvas id="dailyChart"></canvas>
+    <main class="content">
+      <section class="card">
+        <h2>Time by Book</h2>
+        <canvas id="booksPie"></canvas>
+      </section>
 
-    <h2>Cumulative Reading Time</h2>
-    <canvas id="cumulativeChart"></canvas>
+      <section class="card">
+        <h2>Daily Reading</h2>
+        <canvas id="dailyChart"></canvas>
+      </section>
 
-    <h2>Reading by Weekday</h2>
-    <canvas id="weekdayChart"></canvas>
-  </section>
+      <section class="card">
+        <h2>Cumulative Reading</h2>
+        <canvas id="cumulativeChart"></canvas>
+      </section>
 
-  <h2>Books</h2>
-  <table id="booksTable">
-    <thead>
-      <tr>
-        <th data-sort="title">Title</th>
-        <th data-sort="authors">Author</th>
-        <th data-sort="total_read_time">Total Time (hrs)</th>
-       </tr>
-    </thead>
+      <section class="card">
+        <h2>By Weekday</h2>
+        <canvas id="weekdayChart"></canvas>
+      </section>
 
-    <tbody></tbody>
-  </table>
-
-  <button id="exportCsv">Export CSV</button>
-  <button id="exportJson">Export JSON</button>
+      <section class="card">
+        <h2>Books</h2>
+        <table id="booksTable">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Hours</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
 
   <script src="app.js"></script>
 </body>
-
 </html>
